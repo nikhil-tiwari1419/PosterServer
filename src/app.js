@@ -7,8 +7,8 @@ const cors = require('cors')
 const app = express();
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Replace with your frontend URL
-    methods: ['GET', 'POST', 'DELETE'], // Allowed HTTP methods
+    origin: process.env.PORT || 'http://localhost:5173', // Replace with your frontend URL
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed HTTP methods
     credentials: true, // Allow cookies to be sent with requests
 }));
 
@@ -66,9 +66,9 @@ app.get('/get-posts', async (req, res) => {
     try {
         // CORRECT: Use .sort() not .toSorted()
         const posts = await postmodel.find().sort({ createdAt: -1 });
-        
+
         // console.log('Posts fetched:', posts.length); // Debug log
-        
+
         return res.status(200).json({
             success: true,
             message: "Posts fetched successfully",
@@ -85,11 +85,51 @@ app.get('/get-posts', async (req, res) => {
     }
 });
 
+app.patch('/update-post/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { caption } = req.body;
+
+        if (!caption || caption.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: "Caption is required"
+            });
+        }
+
+        const updatePost = await postmodel.findByIdAndUpdate(
+            id,
+            { caption: caption.trim() }, // only update caption 
+            { new: true } //return updated document 
+        );
+
+        if (!updatePost) {
+            return res.status(404).json({
+                success: false,
+                message: "Post not found"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Post update successfully",
+            post: updatePost
+        });
+
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Error updating post",
+            error: error.message
+        });
+    }
+});
+
 app.delete('/delete-post/:id', async (req, res) => {
     console.log("delete post called / API hit")
 
     try {
-        const id = req.params.id;
+        const { id } = req.params;
         const deletedPost = await postmodel.findByIdAndDelete(id);
 
         if (!deletedPost) {
