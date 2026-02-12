@@ -7,7 +7,7 @@ const cors = require('cors')
 const app = express();
 
 app.use(cors({
-    origin: process.env.PORT || 'http://localhost:5173', // Replace with your frontend URL
+    origin: process.env.PORT, // Replace with your frontend URL
     methods: ['GET', 'POST', 'PATCH', 'DELETE'], // Allowed HTTP methods
     credentials: true, // Allow cookies to be sent with requests
 }));
